@@ -32,11 +32,6 @@ while True:
         time.sleep(2)
 
 
-@app.get("/")
-def root():
-    return {"Hello to my project"}
-
-
 
 @app.get("/mobile")
 def get_all():
@@ -47,11 +42,6 @@ def get_all():
 
 @app.post("/moblie",status_code=201)
 def creat_call(call : Call, db: Session = Depends(get_db)):
-    # cursor.execute("""INSERT INTO test (user_name,call_duration,call_count,block_count) VALUES (%s,%s,%s,%s) RETURNING * """,
-    #         (call.user_name, call.call_duration, call.call_count, call.block_count))
-    # call_person = cursor.fetchone()
-    # conn.commit()
-
     new_call = models.Call(user_name = call.user_name, call_duration=call.call_duration,call_count=call.call_count, block_count=call.block_count)
     db.add(new_call)
     db.commit()
@@ -61,39 +51,32 @@ def creat_call(call : Call, db: Session = Depends(get_db)):
 
 @app.get("/moblie/{user_name}")
 def get_call(user_name : str, db : Session = Depends(get_db)):
-    # cursor.execute("""SELECT * FROM test WHERE user_name = %s """,(str(user_name)))
-    # test_call = cursor.fetchone()
-    # print(test_call)
     new_call = db.query(models.Call).filter(models.Call.user_name == user_name).all()
     if new_call == None :
         raise HTTPException(status_code=404,detail=f"call with {user_name} was not found")
     return {"call_detail" : new_call}
-
-@app.put("/moblie/{user_name}/call")
-def update_duration(user_name : str,call : Call , db :Session= Depends(get_db)):
-    update_call = db.query(models.Call).filter(models.Call.user_name == user_name)
-
-    if update_call.first() == None :
-        raise HTTPException(status_code=404, detail=f"call with user_name {user_name} does exist")
     
-    update_call.update(call_duration =+ call.call_duration,synchronize_session=False)
-    db.commit()
-    
-    temp = 0
-    if call.call_duration>0 and call.call_duration %30 != 0 :
-        temp = call.call_duration / 30 + 1
-    if call.call_duration>0 and call.call_duration %30 == 0 :
-        temp = call.call_duration / 30
-    update_call.update(block_count=+temp,call_count =+1 ,synchronize_session=False)
-    db.commit()
-    return {"call_duration": update_call}
+
 
 @app.get("/moblie/{user_name}/billing")
 def get_billing(user_name : str, db : Session = Depends(get_db)):
-    # cursor.execute("""SELECT * FROM test WHERE user_name = %s """,(str(user_name)))
-    # test_call = cursor.fetchone()
-    # print(test_call)
     billing = db.query(models.Call.call_count,models.Call.block_count).filter(models.Call.user_name == user_name).all()
+    
     if billing == None :
         raise HTTPException(status_code=404,detail=f"call with {user_name} was not found")
+    
     return {"billing" : billing}
+
+
+@app.put("/moblie/{user_name}/call}")
+def update_call(user_name : str, updated_call : Call, db : Session = Depends(get_db)):
+
+    post_update = db.query(models.Call).filter(models.Call.user_name == user_name)
+
+    if post_update.first() == None :
+        raise HTTPException(status_code=404, detail=f"call with user_name {user_name} does exist")
+    
+    post_update.update(updated_call.dict(),synchronize_session=False)
+    
+    db.commit()
+    return {"data": post_update.first()}
