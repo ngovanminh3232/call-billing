@@ -1,4 +1,5 @@
 from pyexpat import model
+from unittest import result
 from fastapi import Depends, FastAPI, HTTPException,Response
 from fastapi.params import Body
 from pydantic import BaseModel
@@ -18,6 +19,10 @@ class Call(BaseModel):
     call_duration : int
     call_count : int
     block_count : int
+
+class CallDuraion(BaseModel):
+    call_duration : int
+
 
 while True:
     try:
@@ -69,14 +74,18 @@ def get_billing(user_name : str, db : Session = Depends(get_db)):
 
 
 @app.put("/moblie/{user_name}/call}")
-def update_call(user_name : str, updated_call : Call, db : Session = Depends(get_db)):
+def update_call(user_name : str, updated_call : CallDuraion, db : Session = Depends(get_db)):
 
-    post_update = db.query(models.Call).filter(models.Call.user_name == user_name)
+    call_update = db.query(models.Call).filter(models.Call.user_name == user_name)
 
-    if post_update.first() == None :
-        raise HTTPException(status_code=404, detail=f"call with user_name {user_name} does exist")
+    if call_update.first() == None :
+         raise HTTPException(status_code=404, detail=f"call with user_name {user_name} does exist")
     
-    post_update.update(updated_call.dict(),synchronize_session=False)
+    call_update.update(updated_call.dict(),synchronize_session=False)
     
     db.commit()
-    return {"data": post_update.first()}
+        
+    return {"data": call_update.first()}
+
+
+
