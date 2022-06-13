@@ -48,17 +48,21 @@ def get_all():
 @app.post("/moblie",status_code=201)
 def creat_call(call : Call, db: Session = Depends(get_db)):
     new_call = models.Call(user_name = call.user_name, call_duration=call.call_duration,call_count=call.call_count, block_count=call.block_count)
+    
     db.add(new_call)
     db.commit()
     db.refresh(new_call)
+    
     return {"new_call is": new_call}
 
 
 @app.get("/moblie/{user_name}")
 def get_call(user_name : str, db : Session = Depends(get_db)):
     new_call = db.query(models.Call).filter(models.Call.user_name == user_name).all()
+
     if new_call == None :
         raise HTTPException(status_code=404,detail=f"call with {user_name} was not found")
+
     return {"call_detail" : new_call}
     
 
