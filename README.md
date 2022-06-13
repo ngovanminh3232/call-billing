@@ -16,7 +16,7 @@
 5. Bước 5 : Chạy lệnh uvicorn app.main:app --reload
 ##### Project sẽ tự động tạo cho các bảng được định nghĩa trong models.py
 5. Bước 5 : Truy cập vào http://127.0.0.1:8000/docs 
-6. Bước 6 : Kiểm thử các api
+6. Bước 6 : Kiểm thử các API
 
 Danh sách API:
 *   Get_All : Đưa ra tất cả các cuộc gọi trong database
